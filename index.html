@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Sovereign Matrix Calculator</title>
+
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --card-2: #0f141b;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --muted: #8b949e;
+            --accent: #58a6ff;
+            --accent-soft: rgba(88, 166, 255, 0.14);
+            --success: #3fb950;
+            --danger: #f85149;
+            --warning: #d29922;
+
+            --trace-a: #58a6ff;
+            --trace-b: #bc8cff;
+            --trace-strong: #f2cc60;
+
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at top,
+                    rgba(88, 166, 255, 0.08),
+                    transparent 34%
+                ),
+                var(--bg);
+            color: var(--text);
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app {
+            width: min(1200px, 100%);
+            margin: 0 auto;
+            padding: 28px 18px 50px;
+        }
+
+        /* ---------------- HEADER ---------------- */
+
+        .header {
+            margin-bottom: 22px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px rgba(88, 166, 255, 0.55);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(30px, 5vw, 48px);
+            line-height: 1.05;
+            letter-spacing: -0.035em;
+        }
+
+        .subtitle {
+            margin: 11px 0 0;
+            max-width: 700px;
+            color: var(--muted);
+            line-height: 1.55;
+            font-size: 15px;
+        }
+
+        /* ---------------- CARD ---------------- */
+
+        .card {
+            background: rgba(22, 27, 34, 0.92);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.18);
+            padding: 18px;
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .section-description {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* ---------------- CONTROLS ---------------- */
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: minmax(320px, 2fr) minmax(150px, 220px) 1fr auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 18px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .control-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        select,
+        .scalar-input {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: var(--card-2);
+            color: var(--text);
+            outline: none;
+            padding: 0 12px;
+            transition:
+                border-color 0.18s ease,
+                box-shadow 0.18s ease;
+        }
+
+        select:focus,
+        .scalar-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .scalar-wrap {
+            display: none;
+        }
+
+        .scalar-wrap.visible {
+            display: flex;
+        }
+
+        .toolbar-spacer { min-width: 0; }
+        .dimension-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        .dimension-pair { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .dimension-pair select { min-width:0; }
+
+        .clear-btn {
+            min-height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: transparent;
+            color: var(--text);
+            padding: 0 15px;
+            cursor: pointer;
+            transition:
+                background 0.18s ease,
+                border-color 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: #4b5561;
+        }
+
+        /* ---------------- MATRICES ---------------- */
+
+        .matrices {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .matrix-card {
+            background: var(--card-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 0;
+        }
+
+        .matrix-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .matrix-title {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .matrix-size {
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .matrix-scroll {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            gap: 7px;
+            width: max-content;
+            margin: 0 auto;
+        }
+
+        .matrix-input,
+        .matrix-cell {
+            width: 56px;
+            height: 48px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #11161d;
+            color: var(--text);
+            text-align: center;
+            outline: none;
+            font-size: 15px;
+            transition:
+                transform 0.12s ease,
+                background 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                color 0.18s ease;
+        }
+
+        .matrix-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .matrix-input::selection {
+            background: rgba(88, 166, 255, 0.3);
+        }
+
+        /* Source highlights */
+
+        .matrix-input.trace-a {
+            background: rgba(88, 166, 255, 0.12);
+            border-color: var(--trace-a);
+            box-shadow:
+                0 0 0 2px rgba(88, 166, 255, 0.07),
+                0 0 18px rgba(88, 166, 255, 0.08);
+        }
+
+        .matrix-input.trace-b {
+            background: rgba(188, 140, 255, 0.12);
+            border-color: var(--trace-b);
+            box-shadow:
+                0 0 0 2px rgba(188, 140, 255, 0.07),
+                0 0 18px rgba(188, 140, 255, 0.08);
+        }
+
+        /* Stronger highlight for multiplication pairs */
+
+        .matrix-input.trace-pair-a,
+        .matrix-input.trace-pair-b {
+            background: rgba(242, 204, 96, 0.16);
+            border-color: var(--trace-strong);
+            color: #fff7d1;
+            transform: translateY(-1px);
+            box-shadow:
+                0 0 0 2px rgba(242, 204, 96, 0.08),
+                0 0 16px rgba(242, 204, 96, 0.13);
+        }
+
+        /* ---------------- OPERATIONS ---------------- */
+
+        .operations-card {
+            margin-top: 16px;
+        }
+
+        .operations-header {
+            margin-bottom: 13px;
+        }
+
+        .operation-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 9px;
+        }
+
+        .operation-btn {
+            min-height: 44px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: #11161d;
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+            transition:
+                transform 0.12s ease,
+                background 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease;
+        }
+
+        .operation-btn:hover {
+            background: rgba(88, 166, 255, 0.08);
+            border-color: rgba(88, 166, 255, 0.5);
+        }
+
+        .operation-btn:active {
+            transform: translateY(1px);
+        }
+
+.operation-btn.primary {
+    border-color: var(--border);
+    background: #11161d;
+}
+.operation-btn.selected {
+    background: rgba(88, 166, 255, 0.18);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* ---------------- RESULT ---------------- */
+
+.result-card {
+    margin-top: 16px;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.result-hint {
+    color: var(--accent);
+    font-size: 12px;
+    text-align: right;
+    line-height: 1.4;
+}
+
+        .result-area {
+            min-height: 110px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed var(--border);
+            border-radius: 11px;
+            background: rgba(0, 0, 0, 0.10);
+            padding: 18px;
+            overflow-x: auto;
+        }
+
+        .empty-state {
+            color: var(--muted);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .result-grid {
+            display: grid;
+            gap: 7px;
+            width: max-content;
+        }
+
+        .result-cell {
+            width: 64px;
+            height: 52px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #11161d;
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px;
+            transition:
+                transform 0.12s ease,
+                background 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease;
+        }
+
+        .result-cell:hover,
+        .result-cell:focus-visible {
+            border-color: var(--accent);
+            background: rgba(88, 166, 255, 0.09);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+            outline: none;
+        }
+
+        .result-cell.selected {
+            border-color: #fff;
+            background: rgba(88, 166, 255, 0.14);
+            box-shadow:
+                0 0 0 2px rgba(88, 166, 255, 0.18),
+                0 0 18px rgba(88, 166, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .result-scalar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 82px;
+            min-height: 56px;
+            padding: 0 18px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: #11161d;
+            color: var(--text);
+            font-weight: 800;
+            font-size: 20px;
+            cursor: pointer;
+            transition:
+                background 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease;
+        }
+
+        .result-scalar:hover,
+        .result-scalar:focus-visible {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+            outline: none;
+        }
+
+        .result-scalar.selected {
+            border-color: #fff;
+            background: rgba(88, 166, 255, 0.14);
+        }
+
+        /* ---------------- WORKING ---------------- */
+
+        .working-card {
+            margin-top: 16px;
+        }
+
+        .working-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 13px;
+        }
+
+        .copy-btn {
+            min-height: 38px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text);
+            padding: 0 13px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .working-box {
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: #0b1016;
+            padding: 15px;
+            overflow-x: auto;
+        }
+
+        .working-placeholder {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .trace-title {
+            margin: 0 0 9px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .trace-formula {
+            display: block;
+            margin-bottom: 11px;
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.65;
+            white-space: nowrap;
+        }
+
+        .trace-line {
+            margin: 6px 0;
+            color: var(--muted);
+            line-height: 1.6;
+            white-space: nowrap;
+        }
+
+        .term {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 7px;
+            border-radius: 6px;
+            margin: 2px 0;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .term-a {
+            color: #9ecbff;
+        }
+
+        .term-b {
+            color: #d3b7ff;
+        }
+
+        .term-op {
+            color: var(--muted);
+            padding: 0 2px;
+        }
+
+        /* ---------------- ERROR ---------------- */
+
+        .error-box {
+            display: none;
+            margin-top: 16px;
+            border: 1px solid rgba(248, 81, 73, 0.45);
+            border-radius: 10px;
+            background: rgba(248, 81, 73, 0.07);
+            color: #ffb7b3;
+            padding: 12px 14px;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+
+        .error-box.visible {
+            display: block;
+        }
+
+        /* ---------------- LEGEND ---------------- */
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 16px;
+            margin-top: 13px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex: 0 0 auto;
+        }
+
+        .legend-dot.a {
+            background: var(--trace-a);
+        }
+
+        .legend-dot.b {
+            background: var(--trace-b);
+        }
+
+        .legend-dot.pair {
+            background: var(--trace-strong);
+        }
+
+        /* ---------------- FOOTER ---------------- */
+
+        .footer {
+            margin-top: 25px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .shortcut {
+            color: var(--text);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        /* ---------------- RESPONSIVE ---------------- */
+
+        @media (max-width: 900px) {
+            .toolbar {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .toolbar-spacer {
+                display: none;
+            }
+
+            .clear-btn {
+                width: 100%;
+            }
+
+            .operation-buttons {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                padding: 20px 12px 38px;
+            }
+
+            .matrices {
+                grid-template-columns: 1fr;
+            }
+
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .result-hint {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .card,
+            .matrix-card {
+                padding: 14px;
+            }
+
+            .matrix-input,
+            .matrix-cell {
+                width: 50px;
+                height: 45px;
+            }
+
+            .result-cell {
+                width: 58px;
+                height: 49px;
+            }
+
+            .operation-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            h1 {
+                font-size: 31px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .operation-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .matrix-input,
+            .matrix-cell {
+                width: 46px;
+            }
+
+            .result-cell {
+                width: 52px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <header class="header">
+        <div class="eyebrow">Matrix Tools</div>
+
+        <h1>Sovereign Matrix Calculator</h1>
+
+        <p class="subtitle">
+            Calculate, inspect, and trace matrix operations step by step.
+            Click a result cell to see exactly where its value came from.
+        </p>
+    </header>
+
+    <!-- CONTROLS -->
+    <section class="card">
+
+        <div class="toolbar">
+
+            <div class="dimension-controls" aria-label="Matrix dimensions">
+                <div class="control-group"><label class="control-label" for="aRows">Matrix A · rows × columns</label>
+                    <div class="dimension-pair"><select id="aRows" aria-label="Matrix A rows"></select><select id="aCols" aria-label="Matrix A columns"></select></div></div>
+                <div class="control-group"><label class="control-label" for="bRows">Matrix B · rows × columns</label>
+                    <div class="dimension-pair"><select id="bRows" aria-label="Matrix B rows"></select><select id="bCols" aria-label="Matrix B columns"></select></div></div>
+            </div>
+
+            <div class="control-group scalar-wrap" id="scalarWrap">
+                <label class="control-label" for="scalarInput">
+                    Scalar k
+                </label>
+
+                <input
+                    id="scalarInput"
+                    class="scalar-input"
+                    type="number"
+                    step="any"
+                    value="2"
+                >
+            </div>
+
+            <div class="toolbar-spacer"></div>
+
+            <button
+                class="clear-btn"
+                id="clearButton"
+                type="button"
+            >
+                Clear
+            </button>
+
+        </div>
+
+        <!-- MATRICES -->
+        <div class="matrices">
+
+            <!-- MATRIX A -->
+            <div class="matrix-card">
+
+                <div class="matrix-heading">
+                    <h2 class="matrix-title">Matrix A</h2>
+                    <span
+                        class="matrix-size"
+                        id="matrixASize"
+                    >
+                        2 × 2
+                    </span>
+                </div>
+
+                <div class="matrix-scroll">
+                    <div
+                        class="matrix-grid"
+                        id="matrixA"
+                    ></div>
+                </div>
+
+            </div>
+
+            <!-- MATRIX B -->
+            <div class="matrix-card">
+
+                <div class="matrix-heading">
+                    <h2 class="matrix-title">Matrix B</h2>
+                    <span
+                        class="matrix-size"
+                        id="matrixBSize"
+                    >
+                        2 × 2
+                    </span>
+                </div>
+
+                <div class="matrix-scroll">
+                    <div
+                        class="matrix-grid"
+                        id="matrixB"
+                    ></div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- OPERATIONS -->
+        <div class="card operations-card">
+
+            <div class="operations-header">
+                <h2 class="section-title">Operations</h2>
+
+                <p class="section-description">
+                    Choose an operation to calculate the result.
+                </p>
+            </div>
+
+            <div class="operation-buttons">
+
+                <button
+                    class="operation-btn primary"
+                    type="button"
+                    data-operation="add"
+                >
+                    A + B
+                </button>
+
+                <button
+                    class="operation-btn primary"
+                    type="button"
+                    data-operation="subtract"
+                >
+                    A − B
+                </button>
+
+                <button
+                    class="operation-btn primary"
+                    type="button"
+                    data-operation="multiply"
+                >
+                    A × B
+                </button>
+
+                <button
+                    class="operation-btn"
+                    type="button"
+                    data-operation="scalar"
+                >
+                    kA
+                </button>
+
+                <button
+                    class="operation-btn"
+                    type="button"
+                    data-operation="transpose"
+                >
+                    Aᵀ
+                </button>
+
+                <button
+                    class="operation-btn"
+                    type="button"
+                    data-operation="determinant"
+                >
+                    det(A)
+                </button>
+
+                <button
+                    class="operation-btn"
+                    type="button"
+                    data-operation="inverse"
+                >
+                    A⁻¹
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ERROR -->
+    <div
+        class="error-box"
+        id="errorBox"
+    ></div>
+
+    <!-- RESULT -->
+    <section class="card result-card">
+
+        <div class="result-header">
+
+            <div>
+                <h2 class="section-title">Result</h2>
+
+                <p class="section-description">
+                    Tap or click a result value to trace its calculation.
+                </p>
+            </div>
+
+            <div class="result-hint">
+                Select a cell to highlight its inputs
+            </div>
+
+        </div>
+
+        <div
+            class="result-area"
+            id="resultArea"
+        >
+            <div class="empty-state">
+                Choose an operation above to generate a result.
+            </div>
+        </div>
+
+        <div class="legend">
+
+            <div class="legend-item">
+                <span class="legend-dot a"></span>
+                Matrix A source
+            </div>
+
+            <div class="legend-item">
+                <span class="legend-dot b"></span>
+                Matrix B source
+            </div>
+
+            <div class="legend-item">
+                <span class="legend-dot pair"></span>
+                Multiplication pair
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- WORKING -->
+    <section class="card working-card">
+
+        <div class="working-header">
+
+            <div>
+                <h2 class="section-title">Working</h2>
+
+                <p class="section-description">
+                    The selected result calculation appears here.
+                </p>
+            </div>
+
+            <button
+                class="copy-btn"
+                id="copyButton"
+                type="button"
+            >
+                Copy Steps
+            </button>
+
+        </div>
+
+        <div
+            class="working-box"
+            id="workingBox"
+        >
+            <p class="working-placeholder">
+                Nothing selected yet. Calculate something, then click a
+                result cell.
+            </p>
+        </div>
+
+    </section>
+
+    <footer class="footer">
+        Tip: press
+        <span class="shortcut">Ctrl + Enter</span>
+        or
+        <span class="shortcut">⌘ + Enter</span>
+        to repeat your last operation.
+    </footer>
+
+</div>
+
+<script>
+    /* =========================================================
+       SOVEREIGN MATRIX CALCULATOR
+       ========================================================= */
+
+    const dimensionSelects = {
+ A:{rows:document.getElementById("aRows"),cols:document.getElementById("aCols")},
+ B:{rows:document.getElementById("bRows"),cols:document.getElementById("bCols")}
+};
+
+    const matrixAContainer = document.getElementById("matrixA");
+    const matrixBContainer = document.getElementById("matrixB");
+
+    const matrixASize = document.getElementById("matrixASize");
+    const matrixBSize = document.getElementById("matrixBSize");
+
+    const scalarWrap = document.getElementById("scalarWrap");
+    const scalarInput = document.getElementById("scalarInput");
+
+    const resultArea = document.getElementById("resultArea");
+    const workingBox = document.getElementById("workingBox");
+    const errorBox = document.getElementById("errorBox");
+
+    const clearButton = document.getElementById("clearButton");
+    const copyButton = document.getElementById("copyButton");
+
+    let dimensions={A:{rows:2,cols:2},B:{rows:2,cols:2}};
+    let lastOperation = null;
+
+    /*
+        Stores information about how every result value was created.
+
+        Example for multiplication:
+
+        calculationMap[0][0] = {
+            type: "multiply",
+            pairs: [
+                { a: [0,0], b: [0,0] },
+                { a: [0,1], b: [1,0] }
+            ]
+        }
+    */
+    let calculationMap = [];
+
+    let calculationText = "";
+
+
+    /* =========================================================
+       HELPERS
+       ========================================================= */
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.classList.add("visible");
+    }
+
+    function hideError() {
+        errorBox.textContent = "";
+        errorBox.classList.remove("visible");
+    }
+
+    function formatNumber(value) {
+        if (!Number.isFinite(value)) {
+            return "undefined";
+        }
+
+        if (Math.abs(value) < 1e-10) {
+            value = 0;
+        }
+
+        const rounded = Number(
+            Math.abs(value) < 1e-10
+                ? 0
+                : value.toFixed(10)
+        );
+
+        return String(rounded);
+    }
+
+    function subscriptNumber(number) {
+        const normal = String(number + 1);
+
+        const map = {
+            "0": "₀",
+            "1": "₁",
+            "2": "₂",
+            "3": "₃",
+            "4": "₄",
+            "5": "₅",
+            "6": "₆",
+            "7": "₇",
+            "8": "₈",
+            "9": "₉"
+        };
+
+        return normal
+            .split("")
+            .map(char => map[char] || char)
+            .join("");
+    }
+
+    function cellName(matrix, row, col) {
+        return `${matrix}${subscriptNumber(row)}${subscriptNumber(col)}`;
+    }
+
+    function getInputElement(matrix, row, col) {
+        const container =
+            matrix === "A"
+                ? matrixAContainer
+                : matrixBContainer;
+
+        return container.querySelector(
+            `[data-row="${row}"][data-col="${col}"]`
+        );
+    }
+
+
+    /* =========================================================
+       MATRIX INPUT CREATION
+       ========================================================= */
+
+    function readMatrix(container,name){
+        const rows=dimensions[name].rows,cols=dimensions[name].cols,inputs=container.querySelectorAll(".matrix-input"),matrix=[];
+        for(let r=0;r<rows;r++){const line=[];for(let c=0;c<cols;c++){const input=inputs[r*cols+c];if(!input){line.push(r===c?1:0);continue;}if(input.value.trim()==="")input.value="0";const n=Number(input.value);line.push(Number.isFinite(n)?n:0);}matrix.push(line);}return matrix;
+    }
+    function buildMatrix(container,name,rows,cols,previous){
+        container.innerHTML="";container.style.gridTemplateColumns="repeat("+cols+", 56px)";previous=previous||[];
+        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const input=document.createElement("input");input.type="number";input.step="any";input.className="matrix-input";input.dataset.matrix=name;input.dataset.row=r;input.dataset.col=c;input.setAttribute("aria-label",name+" row "+(r+1)+", column "+(c+1));input.value=previous[r]&&previous[r][c]!==undefined?String(previous[r][c]):(r===c?"1":"0");container.appendChild(input);}
+    }
+    function setDimensionOptions(){for(const name of ["A","B"])for(const axis of ["rows","cols"]){const select=dimensionSelects[name][axis];select.innerHTML="";for(let n=1;n<=8;n++){const option=document.createElement("option");option.value=String(n);option.textContent=n+" "+axis;select.appendChild(option);}select.value=String(dimensions[name][axis]);}}
+    function rebuildMatrices(){
+        const old={A:readMatrix(matrixAContainer,"A"),B:readMatrix(matrixBContainer,"B")};
+        for(const name of ["A","B"])dimensions[name]={rows:Number(dimensionSelects[name].rows.value),cols:Number(dimensionSelects[name].cols.value)};
+        matrixASize.textContent=dimensions.A.rows+" × "+dimensions.A.cols;matrixBSize.textContent=dimensions.B.rows+" × "+dimensions.B.cols;
+        buildMatrix(matrixAContainer,"A",dimensions.A.rows,dimensions.A.cols,old.A);buildMatrix(matrixBContainer,"B",dimensions.B.rows,dimensions.B.cols,old.B);clearResult();
+    }
+    function getMatrices(){return {A:readMatrix(matrixAContainer,"A"),B:readMatrix(matrixBContainer,"B")};}
+
+
+    /* =========================================================
+       HIGHLIGHT RESET
+       ========================================================= */
+
+    function clearHighlights() {
+
+        document
+            .querySelectorAll(".matrix-input")
+            .forEach(input => {
+
+                input.classList.remove(
+                    "trace-a",
+                    "trace-b",
+                    "trace-pair-a",
+                    "trace-pair-b"
+                );
+            });
+
+        document
+            .querySelectorAll(".result-cell, .result-scalar")
+            .forEach(cell => {
+
+                cell.classList.remove("selected");
+            });
+    }
+
+
+    function highlightInput(
+        matrix,
+        row,
+        col,
+        strong = false
+    ) {
+
+        const element =
+            getInputElement(matrix, row, col);
+
+        if (!element) {
+            return;
+        }
+
+        element.classList.add(
+            strong
+                ? matrix === "A"
+                    ? "trace-pair-a"
+                    : "trace-pair-b"
+                : matrix === "A"
+                    ? "trace-a"
+                    : "trace-b"
+        );
+    }
+
+
+    /* =========================================================
+       RESULT RENDERING
+       ========================================================= */
+
+    function renderMatrixResult(result, operationName) {
+
+        const grid = document.createElement("div");
+
+        grid.className = "result-grid";
+
+        grid.style.gridTemplateColumns = "repeat(" + (result[0] ? result[0].length : 0) + ", 64px)";
+
+        result.forEach((row, rowIndex) => {
+
+            row.forEach((value, colIndex) => {
+
+                const button =
+                    document.createElement("button");
+
+                button.type = "button";
+                button.className = "result-cell";
+
+                button.textContent =
+                    formatNumber(value);
+
+                button.dataset.row = rowIndex;
+                button.dataset.col = colIndex;
+
+                button.setAttribute(
+                    "aria-label",
+                    `Result row ${rowIndex + 1}, column ${colIndex + 1}: ${formatNumber(value)}`
+                );
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        selectResultCell(
+                            rowIndex,
+                            colIndex,
+                            button,
+                            operationName
+                        );
+                    }
+                );
+
+                grid.appendChild(button);
+            });
+        });
+
+        resultArea.innerHTML = "";
+        resultArea.appendChild(grid);
+
+        /*
+            Automatically select the first result cell.
+            This means the calculator immediately teaches
+            the user how the first answer was produced.
+        */
+        const first =
+            grid.querySelector(".result-cell");
+
+        if (first) {
+            selectResultCell(
+                0,
+                0,
+                first,
+                operationName
+            );
+        }
+    }
+
+
+    function renderScalarResult(value, operationName) {
+
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+        button.className = "result-scalar";
+
+        button.textContent =
+            formatNumber(value);
+
+        button.setAttribute(
+            "aria-label",
+            `Result: ${formatNumber(value)}`
+        );
+
+        button.addEventListener(
+            "click",
+            () => {
+                selectScalarResult(
+                    button,
+                    operationName
+                );
+            }
+        );
+
+        resultArea.innerHTML = "";
+        resultArea.appendChild(button);
+
+        selectScalarResult(
+            button,
+            operationName
+        );
+    }
+
+
+    /* =========================================================
+       TRACE SELECTION
+       ========================================================= */
+
+    function selectResultCell(
+        row,
+        col,
+        resultButton,
+        operationName
+    ) {
+
+        clearHighlights();
+
+        resultButton.classList.add("selected");
+
+        const trace =
+            calculationMap[row]?.[col];
+
+        if (!trace) {
+            return;
+        }
+
+        switch (trace.type) {
+
+            case "add":
+                traceAdd(
+                    row,
+                    col,
+                    trace
+                );
+                break;
+
+            case "subtract":
+                traceSubtract(
+                    row,
+                    col,
+                    trace
+                );
+                break;
+
+            case "multiply":
+                traceMultiply(
+                    row,
+                    col,
+                    trace
+                );
+                break;
+
+            case "scalar":
+                traceScalar(
+                    row,
+                    col,
+                    trace
+                );
+                break;
+
+            case "transpose":
+                traceTranspose(
+                    row,
+                    col,
+                    trace
+                );
+                break;
+
+            case "inverse":
+                traceInverse(
+                    row,
+                    col,
+                    trace
+                );
+                break;
+        }
+    }
+
+
+    function selectScalarResult(
+        button,
+        operationName
+    ) {
+
+        clearHighlights();
+
+        button.classList.add("selected");
+
+        const trace =
+            calculationMap?.scalar;
+
+        if (!trace) {
+            return;
+        }
+
+        if (trace.type === "determinant") {
+
+            highlightEntireMatrix("A");
+
+            renderDeterminantTrace(trace);
+
+            return;
+        }
+
+        if (trace.type === "determinant-result") {
+
+            highlightEntireMatrix("A");
+
+            renderDeterminantTrace(trace);
+
+            return;
+        }
+    }
+
+
+    /* =========================================================
+       TRACE: ADD
+       ========================================================= */
+
+    function traceAdd(row, col, trace) {
+
+        highlightInput(
+            "A",
+            row,
+            col
+        );
+
+        highlightInput(
+            "B",
+            row,
+            col
+        );
+
+        const a = trace.values.a;
+        const b = trace.values.b;
+        const result = trace.values.result;
+
+        calculationText =
+`C${subscriptNumber(row)}${subscriptNumber(col)} = A${subscriptNumber(row)}${subscriptNumber(col)} + B${subscriptNumber(row)}${subscriptNumber(col)}
+${a} + ${b} = ${formatNumber(result)}`;
+
+        workingBox.innerHTML = `
+            <h3 class="trace-title">
+                Adding the matching cells
+            </h3>
+
+            <div class="trace-formula">
+                C${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                <span class="term term-a">${a}</span>
+                +
+                <span class="term term-b">${b}</span>
+                =
+                <strong>${formatNumber(result)}</strong>
+            </div>
+
+            <p class="trace-line">
+                A${subscriptNumber(row)}${subscriptNumber(col)}
+                + B${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                ${a} + ${b}
+            </p>
+        `;
+    }
+
+
+    /* =========================================================
+       TRACE: SUBTRACT
+       ========================================================= */
+
+    function traceSubtract(row, col, trace) {
+
+        highlightInput(
+            "A",
+            row,
+            col
+        );
+
+        highlightInput(
+            "B",
+            row,
+            col
+        );
+
+        const a = trace.values.a;
+        const b = trace.values.b;
+        const result = trace.values.result;
+
+        calculationText =
+`C${subscriptNumber(row)}${subscriptNumber(col)} = A${subscriptNumber(row)}${subscriptNumber(col)} - B${subscriptNumber(row)}${subscriptNumber(col)}
+${a} - ${b} = ${formatNumber(result)}`;
+
+        workingBox.innerHTML = `
+            <h3 class="trace-title">
+                Subtracting the matching cells
+            </h3>
+
+            <div class="trace-formula">
+                C${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                <span class="term term-a">${a}</span>
+                −
+                <span class="term term-b">${b}</span>
+                =
+                <strong>${formatNumber(result)}</strong>
+            </div>
+
+            <p class="trace-line">
+                A${subscriptNumber(row)}${subscriptNumber(col)}
+                − B${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                ${a} − ${b}
+            </p>
+        `;
+    }
+
+
+    /* =========================================================
+       TRACE: MULTIPLICATION
+       ========================================================= */
+
+    function traceMultiply(row, col, trace) {
+
+        /*
+            Lightly highlight the full row from A
+            and full column from B.
+        */
+        for (let i = 0; i < trace.values.a[0].length; i++) {
+
+            highlightInput(
+                "A",
+                row,
+                i
+            );
+
+            highlightInput(
+                "B",
+                i,
+                col
+            );
+        }
+
+        /*
+            Make each actual multiplication pair
+            stronger.
+        */
+        trace.pairs.forEach(pair => {
+
+            highlightInput(
+                "A",
+                pair.a[0],
+                pair.a[1],
+                true
+            );
+
+            highlightInput(
+                "B",
+                pair.b[0],
+                pair.b[1],
+                true
+            );
+        });
+
+        const terms = trace.pairs.map(
+            pair => {
+
+                const aValue =
+                    trace.values.a[pair.a[0]][pair.a[1]];
+
+                const bValue =
+                    trace.values.b[pair.b[0]][pair.b[1]];
+
+                return {
+                    aName: cellName(
+                        "A",
+                        pair.a[0],
+                        pair.a[1]
+                    ),
+                    bName: cellName(
+                        "B",
+                        pair.b[0],
+                        pair.b[1]
+                    ),
+                    aValue,
+                    bValue,
+                    product:
+                        aValue * bValue
+                };
+            }
+        );
+
+        const result =
+            trace.values.result;
+
+        const visualTerms =
+            terms.map((term, index) => {
+
+                return `
+                    <span class="term">
+                        <span class="term term-a">
+                            ${term.aValue}
+                        </span>
+
+                        <span class="term-op">×</span>
+
+                        <span class="term term-b">
+                            ${term.bValue}
+                        </span>
+                    </span>
+
+                    ${
+                        index < terms.length - 1
+                            ? `<span class="term-op"> + </span>`
+                            : ""
+                    }
+                `;
+            }).join("");
+
+        const textTerms =
+            terms.map(
+                term =>
+                    `(${term.aValue} × ${term.bValue})`
+            ).join(" + ");
+
+        calculationText =
+`C${subscriptNumber(row)}${subscriptNumber(col)} = ${textTerms} = ${formatNumber(result)}`;
+
+        workingBox.innerHTML = `
+            <h3 class="trace-title">
+                Multiplying row ${row + 1}
+                of A by column ${col + 1}
+                of B
+            </h3>
+
+            <div class="trace-formula">
+                C${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                ${visualTerms}
+                =
+                <strong>${formatNumber(result)}</strong>
+            </div>
+
+            <p class="trace-line">
+                Each highlighted pair is multiplied,
+                then all products are added together.
+            </p>
+        `;
+    }
+
+
+    /* =========================================================
+       TRACE: SCALAR
+       ========================================================= */
+
+    function traceScalar(row, col, trace) {
+
+        highlightInput(
+            "A",
+            row,
+            col
+        );
+
+        const value =
+            trace.values.a;
+
+        const scalar =
+            trace.values.scalar;
+
+        const result =
+            trace.values.result;
+
+        calculationText =
+`C${subscriptNumber(row)}${subscriptNumber(col)} = k × A${subscriptNumber(row)}${subscriptNumber(col)}
+${scalar} × ${value} = ${formatNumber(result)}`;
+
+        workingBox.innerHTML = `
+            <h3 class="trace-title">
+                Scalar multiplication
+            </h3>
+
+            <div class="trace-formula">
+                C${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                <span class="term term-a">${scalar}</span>
+                ×
+                <span class="term term-a">${value}</span>
+                =
+                <strong>${formatNumber(result)}</strong>
+            </div>
+
+            <p class="trace-line">
+                Every cell of A is multiplied by k.
+            </p>
+        `;
+    }
+
+
+    /* =========================================================
+       TRACE: TRANSPOSE
+       ========================================================= */
+
+    function traceTranspose(row, col, trace) {
+
+        highlightInput(
+            "A",
+            trace.source.row,
+            trace.source.col
+        );
+
+        const value =
+            trace.values.a;
+
+        calculationText =
+`C${subscriptNumber(row)}${subscriptNumber(col)} = A${subscriptNumber(trace.source.row)}${subscriptNumber(trace.source.col)}
+${value}`;
+
+        workingBox.innerHTML = `
+            <h3 class="trace-title">
+                Transpose
+            </h3>
+
+            <div class="trace-formula">
+                C${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                A${subscriptNumber(trace.source.row)}${subscriptNumber(trace.source.col)}
+                =
+                <strong>${formatNumber(value)}</strong>
+            </div>
+
+            <p class="trace-line">
+                Transposing swaps the row and column positions.
+            </p>
+        `;
+    }
+
+
+    /* =========================================================
+       TRACE: INVERSE
+       ========================================================= */
+
+    function traceInverse(row, col, trace) {
+
+        highlightEntireMatrix("A");
+
+        calculationText =
+`C${subscriptNumber(row)}${subscriptNumber(col)} is derived from the full matrix A using Gauss-Jordan elimination.`;
+
+        workingBox.innerHTML = `
+            <h3 class="trace-title">
+                Inverse calculation
+            </h3>
+
+            <div class="trace-formula">
+                C${subscriptNumber(row)}${subscriptNumber(col)}
+                =
+                <strong>${formatNumber(trace.result)}</strong>
+            </div>
+
+            <p class="trace-line">
+                An inverse entry depends on the full matrix,
+                so the entire Matrix A is highlighted.
+            </p>
+        `;
+    }
+
+
+    /* =========================================================
+       TRACE: DETERMINANT
+       ========================================================= */
+
+    function traceDeterminant() {
+
+        highlightEntireMatrix("A");
+
+        const trace =
+            calculationMap.scalar;
+
+        renderDeterminantTrace(trace);
+    }
+
+
+    function renderDeterminantTrace(trace) {
+
+        calculationText =
+            trace.text;
+
+        workingBox.innerHTML = `
+            <h3 class="trace-title">
+                Determinant
+            </h3>
+
+            ${trace.html}
+        `;
+    }
+
+
+    /* =========================================================
+       HIGHLIGHT ENTIRE MATRIX
+       ========================================================= */
+
+    function highlightEntireMatrix(matrix) {
+
+        const container =
+            matrix === "A"
+                ? matrixAContainer
+                : matrixBContainer;
+
+        container
+            .querySelectorAll(".matrix-input")
+            .forEach(input => {
+
+                input.classList.add(
+                    matrix === "A"
+                        ? "trace-a"
+                        : "trace-b"
+                );
+            });
+    }
+
+
+    /* =========================================================
+       ADDITION
+       ========================================================= */
+
+    function addMatrices(A,B){const result=[],map=[];for(let r=0;r<A.length;r++){result[r]=[];map[r]=[];for(let c=0;c<A[r].length;c++){const v=A[r][c]+B[r][c];result[r][c]=v;map[r][c]={type:"add",values:{a:A[r][c],b:B[r][c],result:v}};}}return{result,map};}
+
+    /* =========================================================
+       SUBTRACTION
+       ========================================================= */
+
+    function subtractMatrices(A,B){const result=[],map=[];for(let r=0;r<A.length;r++){result[r]=[];map[r]=[];for(let c=0;c<A[r].length;c++){const v=A[r][c]-B[r][c];result[r][c]=v;map[r][c]={type:"subtract",values:{a:A[r][c],b:B[r][c],result:v}};}}return{result,map};}
+
+    /* =========================================================
+       MATRIX MULTIPLICATION
+       ========================================================= */
+
+    function multiplyMatrices(A,B){const result=[],map=[],shared=A[0].length;for(let r=0;r<A.length;r++){result[r]=[];map[r]=[];for(let c=0;c<B[0].length;c++){let sum=0;const pairs=[];for(let k=0;k<shared;k++){sum+=A[r][k]*B[k][c];pairs.push({a:[r,k],b:[k,c]});}result[r][c]=sum;map[r][c]={type:"multiply",pairs,values:{a:A,b:B,result:sum}};}}return{result,map};}
+
+    /* =========================================================
+       SCALAR MULTIPLICATION
+       ========================================================= */
+
+    function scalarMultiply(A,k){const result=[],map=[];for(let r=0;r<A.length;r++){result[r]=[];map[r]=[];for(let c=0;c<A[r].length;c++){const v=A[r][c]*k;result[r][c]=v;map[r][c]={type:"scalar",values:{a:A[r][c],scalar:k,result:v}};}}return{result,map};}
+
+    /* =========================================================
+       TRANSPOSE
+       ========================================================= */
+
+    function transposeMatrix(A){const result=[],map=[];for(let r=0;r<A[0].length;r++){result[r]=[];map[r]=[];for(let c=0;c<A.length;c++){const v=A[c][r];result[r][c]=v;map[r][c]={type:"transpose",source:{row:c,col:r},values:{a:v}};}}return{result,map};}
+
+
+    /* =========================================================
+       DETERMINANT
+       ========================================================= */
+
+    function determinantMatrix(A) {
+
+        const n = A.length;
+
+        const matrix =
+            A.map(row => [...row]);
+
+        let determinant = 1;
+        let swapCount = 0;
+
+        const steps = [];
+
+        for (let col = 0; col < n; col++) {
+
+            let pivotRow = col;
+
+            for (
+                let row = col + 1;
+                row < n;
+                row++
+            ) {
+
+                if (
+                    Math.abs(matrix[row][col]) >
+                    Math.abs(matrix[pivotRow][col])
+                ) {
+                    pivotRow = row;
+                }
+            }
+
+            if (
+                Math.abs(matrix[pivotRow][col]) <
+                1e-12
+            ) {
+
+                return {
+                    value: 0,
+                    html: `
+                        <p class="trace-line">
+                            A pivot becomes zero, so
+                            det(A) = <strong>0</strong>.
+                        </p>
+                    `,
+                    text: "det(A) = 0"
+                };
+            }
+
+            if (pivotRow !== col) {
+
+                [matrix[pivotRow], matrix[col]] =
+                    [matrix[col], matrix[pivotRow]];
+
+                swapCount++;
+
+                steps.push(
+                    `Swap row ${col + 1} with row ${pivotRow + 1}.`
+                );
+            }
+
+            const pivot =
+                matrix[col][col];
+
+            determinant *= pivot;
+
+            steps.push(
+                `Pivot at row ${col + 1}: ${formatNumber(pivot)}`
+            );
+
+            for (
+                let row = col + 1;
+                row < n;
+                row++
+            ) {
+
+                const factor =
+                    matrix[row][col] / pivot;
+
+                for (
+                    let j = col;
+                    j < n;
+                    j++
+                ) {
+
+                    matrix[row][j] -=
+                        factor * matrix[col][j];
+                }
+            }
+        }
+
+        if (swapCount % 2 !== 0) {
+            determinant *= -1;
+        }
+
+        const stepHtml =
+            steps.map(
+                step =>
+                    `<p class="trace-line">${step}</p>`
+            ).join("");
+
+        return {
+            value: determinant,
+
+            html: `
+                <p class="trace-line">
+                    The determinant is found through
+                    row elimination and pivot multiplication.
+                </p>
+
+                ${stepHtml}
+
+                <p class="trace-line">
+                    Final determinant:
+                    <strong>${formatNumber(determinant)}</strong>
+                </p>
+            `,
+
+            text:
+                `det(A) = ${formatNumber(determinant)}`
+        };
+    }
+
+
+    /* =========================================================
+       INVERSE
+       ========================================================= */
+
+    function inverseMatrix(A) {
+
+        const n = A.length;
+
+        const augmented =
+            A.map((row, rowIndex) => [
+
+                ...row,
+
+                ...Array.from(
+                    { length: n },
+                    (_, colIndex) =>
+                        rowIndex === colIndex
+                            ? 1
+                            : 0
+                )
+            ]);
+
+        const steps = [];
+
+        for (let col = 0; col < n; col++) {
+
+            let pivotRow = col;
+
+            for (
+                let row = col + 1;
+                row < n;
+                row++
+            ) {
+
+                if (
+                    Math.abs(
+                        augmented[row][col]
+                    ) >
+                    Math.abs(
+                        augmented[pivotRow][col]
+                    )
+                ) {
+                    pivotRow = row;
+                }
+            }
+
+            if (
+                Math.abs(
+                    augmented[pivotRow][col]
+                ) < 1e-12
+            ) {
+                return null;
+            }
+
+            if (pivotRow !== col) {
+
+                [
+                    augmented[pivotRow],
+                    augmented[col]
+                ] = [
+                    augmented[col],
+                    augmented[pivotRow]
+                ];
+
+                steps.push(
+                    `Swap row ${col + 1} with row ${pivotRow + 1}.`
+                );
+            }
+
+            const pivot =
+                augmented[col][col];
+
+            for (let j = 0; j < 2 * n; j++) {
+
+                augmented[col][j] /= pivot;
+            }
+
+            steps.push(
+                `Normalize row ${col + 1}.`
+            );
+
+            for (
+                let row = 0;
+                row < n;
+                row++
+            ) {
+
+                if (row === col) {
+                    continue;
+                }
+
+                const factor =
+                    augmented[row][col];
+
+                for (
+                    let j = 0;
+                    j < 2 * n;
+                    j++
+                ) {
+
+                    augmented[row][j] -=
+                        factor *
+                        augmented[col][j];
+                }
+            }
+
+            steps.push(
+                `Clear column ${col + 1}.`
+            );
+        }
+
+        const inverse =
+            augmented.map(
+                row =>
+                    row.slice(n)
+            );
+
+        return {
+            result: inverse,
+            steps
+        };
+    }
+
+
+    /* =========================================================
+       RUN OPERATION
+       ========================================================= */
+
+    function calculate(operation){
+        hideError();const m=getMatrices(),A=m.A,B=m.B;lastOperation=operation;
+        const same=dimensions.A.rows===dimensions.B.rows&&dimensions.A.cols===dimensions.B.cols;
+        if(["add","subtract"].includes(operation)&&!same){showError("Addition and subtraction require Matrix A and Matrix B to have identical dimensions.");return;}
+        if(operation==="multiply"&&dimensions.A.cols!==dimensions.B.rows){showError("Matrix multiplication requires the number of columns in A to equal the number of rows in B.");return;}
+        if(["determinant","inverse"].includes(operation)&&dimensions.A.rows!==dimensions.A.cols){showError("Matrix A must be square to calculate its "+(operation==="determinant"?"determinant.":"inverse."));return;}
+        if(["add","subtract","multiply"].includes(operation)){const o=operation==="add"?addMatrices(A,B):operation==="subtract"?subtractMatrices(A,B):multiplyMatrices(A,B);calculationMap=o.map;calculationMap.scalar=null;renderMatrixResult(o.result,operation);return;}
+        if(operation==="scalar"){const k=Number(scalarInput.value);if(!Number.isFinite(k)){showError("Enter a valid scalar value.");return;}const o=scalarMultiply(A,k);calculationMap=o.map;calculationMap.scalar=null;renderMatrixResult(o.result,operation);return;}
+        if(operation==="transpose"){const o=transposeMatrix(A);calculationMap=o.map;calculationMap.scalar=null;renderMatrixResult(o.result,operation);return;}
+        if(operation==="determinant"){const o=determinantMatrix(A);calculationMap=[];calculationMap.scalar={type:"determinant",value:o.value,html:o.html,text:o.text};renderScalarResult(o.value,operation);return;}
+        if(operation==="inverse"){const o=inverseMatrix(A);if(!o){showError("Matrix A is not invertible. Its determinant is 0.");resultArea.innerHTML='<div class="empty-state">No inverse exists for this matrix.</div>';workingBox.innerHTML='<p class="working-placeholder">The matrix is singular, so A⁻¹ does not exist.</p>';calculationText="";return;}calculationMap=o.result.map(row=>row.map(value=>({type:"inverse",result:value})));calculationMap.scalar=null;calculationText=o.steps.join("\n");renderMatrixResult(o.result,operation);}
+    }
+
+
+    /* =========================================================
+       CLEAR RESULT
+       ========================================================= */
+
+    function clearResult() {
+
+        calculationMap = [];
+        calculationText = "";
+
+        resultArea.innerHTML = `
+            <div class="empty-state">
+                Choose an operation above to generate a result.
+            </div>
+        `;
+
+        workingBox.innerHTML = `
+            <p class="working-placeholder">
+                Nothing selected yet. Calculate something, then click a
+                result cell.
+            </p>
+        `;
+
+        hideError();
+
+        clearHighlights();
+    }
+
+
+    /* =========================================================
+       CLEAR INPUT VALUES
+       ========================================================= */
+
+    function clearInputs() {
+
+        document
+            .querySelectorAll(".matrix-input")
+            .forEach(input => {
+
+                const row =
+                    Number(input.dataset.row);
+
+                const col =
+                    Number(input.dataset.col);
+
+                input.value =
+                    row === col
+                        ? "1"
+                        : "0";
+            });
+
+        scalarInput.value = "2";
+
+        clearResult();
+    }
+
+
+    /* =========================================================
+       COPY WORKING
+       ========================================================= */
+
+    async function copyWorking() {
+
+        if (!calculationText) {
+            return;
+        }
+
+        try {
+
+            await navigator.clipboard.writeText(
+                calculationText
+            );
+
+            const original =
+                copyButton.textContent;
+
+            copyButton.textContent =
+                "Copied!";
+
+            setTimeout(() => {
+                copyButton.textContent =
+                    original;
+            }, 1200);
+
+        } catch (error) {
+
+            showError(
+                "Could not copy automatically. Select the working text manually."
+            );
+        }
+    }
+
+
+    /* =========================================================
+       SHOW/HIDE SCALAR INPUT
+       ========================================================= */
+
+    function updateScalarVisibility(operation) {
+
+        scalarWrap.classList.toggle(
+            "visible",
+            operation === "scalar"
+        );
+    }
+
+
+    /* =========================================================
+       BUTTON EVENTS
+       ========================================================= */
+
+    document
+        .querySelectorAll(".operation-btn")
+        .forEach(button => {
+
+          button.addEventListener(
+    "click",
+    () => {
+
+        const operation =
+            button.dataset.operation;
+
+        // Highlight the currently selected operation
+        document
+            .querySelectorAll(".operation-btn")
+            .forEach(btn => {
+                btn.classList.remove("selected");
+            });
+
+        button.classList.add("selected");
+
+        updateScalarVisibility(operation);
+
+        calculate(operation);
+    }
+);
+        });
+
+
+    Object.values(dimensionSelects).forEach(pair => {
+        pair.rows.addEventListener("change", rebuildMatrices);
+        pair.cols.addEventListener("change", rebuildMatrices);
+    });
+
+
+    clearButton.addEventListener(
+        "click",
+        clearInputs
+    );
+
+
+    copyButton.addEventListener(
+        "click",
+        copyWorking
+    );
+
+
+    /*
+        Ctrl + Enter / Cmd + Enter
+    */
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                (event.ctrlKey || event.metaKey) &&
+                event.key === "Enter"
+            ) {
+
+                if (lastOperation) {
+
+                    updateScalarVisibility(
+                        lastOperation
+                    );
+
+                    calculate(
+                        lastOperation
+                    );
+                }
+            }
+        }
+    );
+
+    /*
+        Clicking an input clears the previous tracing,
+        because the old result may no longer represent
+        the current values.
+    */
+    document.addEventListener(
+        "input",
+        event => {
+
+            if (
+                event.target.classList.contains(
+                    "matrix-input"
+                ) ||
+                event.target === scalarInput
+            ) {
+                clearHighlights();
+
+                workingBox.innerHTML = `
+                    <p class="working-placeholder">
+                        Matrix values changed. Run the operation again
+                        to update the result.
+                    </p>
+                `;
+            }
+        }
+    );
+
+
+    /* =========================================================
+       INITIALIZE
+       ========================================================= */
+
+    setDimensionOptions();
+    rebuildMatrices();
+</script>
+
+</body>
+</html>
